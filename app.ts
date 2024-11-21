@@ -1,29 +1,47 @@
 import cors from 'cors'
+import http from 'http'
 import helmet from 'helmet'
 import express from 'express'
 import router from './router/router'
 import compression from 'compression'
 import { Borgen, Logger } from 'borgen'
-import { StatusCodes } from 'http-status-codes'
+import { Config } from './utils/config'
+import cookieParser from 'cookie-parser'
+import connectDb from './database/connectDb'
+import { setupWebSocketServer } from './sockets'
 
 const app = express()
-const PORT = process.env.PORT || 5000
+
+const server = http.createServer(app)
+export const wss = setupWebSocketServer(server)
 
 // Middleware
-app.use(cors())
+app.use(
+  cors({
+    origin: [Config.FRONTEND_URL],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+  }),
+)
+
 app.use(helmet())
 app.use(Borgen({}))
 app.use(compression())
 app.use(express.json())
+app.use(cookieParser())
 app.use(express.urlencoded({ extended: true }))
-
-// Routes
-app.get('/ping', (_, res) => {
-  res.status(StatusCodes.OK).json({ message: 'pong', alive: true })
-})
 
 app.use('/', router)
 
-app.listen(PORT, () => {
-  Logger.info({ message: `Server is running on port ${PORT}` })
-})
+const startServer = async () => {
+  server.listen(Config.SERVER_PORT, () => {
+    Logger.info({
+      message: `Server is listening on port ${Config.SERVER_PORT}`,
+      messageColor: 'greenBright',
+      infoColor: 'whiteBright',
+    })
+  })
+}
+
+// Connect to the database. Then Start Server
+connectDb(startServer)
