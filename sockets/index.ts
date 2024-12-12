@@ -1,10 +1,10 @@
 import http from 'http'
-import { WebSocket } from 'ws'
+import { WebSocketServer } from 'ws'
 import { jsonToObj } from '../utils/utils'
 
 // Setup websocket server
 export async function setupWebSocketServer(server: http.Server) {
-  const wss = new WebSocket.Server({ server })
+  const wss = new WebSocketServer({ server })
 
   wss.on('connection', (wsClient) => {
     // Listen for messages from Client socket
