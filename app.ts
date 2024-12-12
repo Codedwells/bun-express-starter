@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import cors from 'cors'
 import http from 'http'
 import helmet from 'helmet'
